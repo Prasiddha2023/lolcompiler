@@ -1,11 +1,3 @@
-
-mod lexer;
-
-use lexer::Lexer;
-use std::env;
-use std::fs;
-use std::process;
-
 pub trait SyntaxAnalyzer {
     fn parse_lolcode(&mut self) -> Result<(), String>;
     fn parse_head(&mut self) -> Result<(), String>;
@@ -510,55 +502,5 @@ impl SyntaxAnalyzer for Parser {
         self.pos += 1;
 
         Ok(())
-    }
-}
-
-fn main() {
-    let args: Vec<String> = env::args().collect();
-
-    if args.len() != 2 {
-        eprintln!("Usage: lolcompiler <file.lol>");
-        process::exit(1);
-    }
-
-    let filename = &args[1];
-
-    if !filename.to_lowercase().ends_with(".lol") {
-        eprintln!("Error: input file must have a .lol extension");
-        process::exit(1);
-    }
-
-    let source = match fs::read_to_string(filename) {
-        Ok(content) => content,
-        Err(e) => {
-            eprintln!("Error reading file: {}", e);
-            process::exit(1);
-        }
-    };
-
-    let mut lexer = Lexer::new(&source);
-
-    let tokens = match lexer.tokenize() {
-        Ok(tokens) => tokens,
-        Err(e) => {
-            eprintln!("{}", e);
-            process::exit(1);
-        }
-    };
-
-    let mut parser = Parser::new(tokens);
-
-    match parser.parse_lolcode() {
-        Ok(()) => {
-            println!("Syntax analysis successful.");
-
-            if let Some(tree) = &parser.tree {
-                tree.print(0);
-            }
-        }
-        Err(e) => {
-            eprintln!("{}", e);
-            process::exit(1);
-        }
     }
 }
