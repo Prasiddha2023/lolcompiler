@@ -1,0 +1,53 @@
+Transcript of what I asked ChatGPT and what it spit out:
+
+for lexical analyzer:
+can you give me the lexical analyzer (without comments, I'll make them myself)
+Here's the lexical analyzer without comments. Save it as lexer.rs.
+(it added code here)
+
+for parser:
+ok give me parser
+Here's the Task 2 Syntax Analyzer for your LOLCODE compiler, without comments so you can write them yourself.
+
+
+Put this in src/main.rs. It uses your existing lexer.rs, keeps the SyntaxAnalyzer trait and recursive-descent structure, and prints a parse tree.
+(added code here)
+
+
+
+for static scope:
+I'd like you to implement the static scope variable resolution now please
+Yes. Let's implement Task 3 — Static Scope Variable Resolution using your existing Node parse tree and Parser.
+
+We'll put it in a separate semantic.rs file, so you don't have to rewrite your lexer or parser. I'll leave out code comments so you can write them yourself.
+
+This implementation will:
+
+Store variables defined using #IHAZ name #ITIZ value #MKAY.
+
+Resolve variables used with #GIMMEH VAR name #OIC.
+
+Allow inner blocks to access variables from outer blocks.
+
+Allow inner blocks to shadow variables with the same name.
+
+Prevent local variables from remaining accessible after their block ends.
+
+Report an error when a variable is used without an accessible definition.
+
+(gave me steps and added code here)
+
+
+for the html gen (task 4):
+give me whats needed for task 4
+For Task 4 — HTML Generation, we'll add htmlgenerator.rs and update main.rs to run it after your static scope analyzer.
+
+I'll keep your existing lexer.rs, syntaxanalyzer.rs, and semantic.rs structure, and leave the code without comments so you can write them yourself.
+
+Task 4 needs to translate your resolved parse tree into HTML, save it with the same filename as the .lol file, and open it in your default browser.
+
+
+
+
+
+
