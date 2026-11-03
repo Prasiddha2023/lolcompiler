@@ -258,6 +258,8 @@ impl SyntaxAnalyzer for Parser {
         while self.pos < self.tokens.len() && !self.at("#KBYE") {
             if self.at("#OBTW") {
                 self.parse_comment()?;
+            } else if self.at("#IHAZ") {
+                self.parse_variable_define()?;
             } else if self.at("#MAEK PARAGRAF") {
                 self.parse_paragraph()?;
             } else if self.at("#MAEK LIST") {
@@ -301,6 +303,8 @@ impl SyntaxAnalyzer for Parser {
         while self.pos < self.tokens.len() && !self.at("#MKAY") {
             if self.at("#OBTW") {
                 self.parse_comment()?;
+            } else if self.at("#IHAZ") {
+                self.parse_variable_define()?;
             } else if self.at("#GIMMEH BOLD") {
                 self.parse_bold()?;
             } else if self.at("#GIMMEH VAR") {
