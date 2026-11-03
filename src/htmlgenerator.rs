@@ -4,15 +4,16 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-/// Makes HTML from the syntax tree.
+/// Converts the checked syntax tree into an HTML file.
 pub struct HtmlGenerator;
 
 impl HtmlGenerator {
+    /// Creates the HTML generator.
     pub fn new() -> Self {
         HtmlGenerator
     }
 
-    // Handles special HTML characters.
+    // Replaces special characters so text does not get treated as HTML tags.
     fn escape_html(text: &str) -> String {
         text.replace('&', "&amp;")
             .replace('<', "&lt;")
@@ -20,7 +21,7 @@ impl HtmlGenerator {
             .replace('"', "&quot;")
     }
 
-    // Joins the child nodes.
+    // Combines child nodes and adds spaces between pieces of visible text.
     fn render_children(&self, node: &Node) -> String {
         let mut result = String::new();
         let mut previous_text = false;
@@ -48,7 +49,7 @@ impl HtmlGenerator {
         result
     }
 
-    // Turns nodes into HTML.
+    // Turns each syntax tree node into its matching HTML output.
     fn render(&self, node: &Node) -> String {
         match node.kind.as_str() {
             "lolcode" => format!("<html>\n{}\n</html>\n", self.render_children(node)),
@@ -85,7 +86,7 @@ impl HtmlGenerator {
         }
     }
 
-    /// Saves the HTML file.
+    /// Writes the generated HTML next to the input file.
     pub fn generate(&self, tree: &Node, filename: &str) -> Result<PathBuf, String> {
         let input_path = Path::new(filename);
         let output_path = input_path.with_extension("html");
@@ -97,7 +98,7 @@ impl HtmlGenerator {
         Ok(output_path)
     }
 
-    /// Opens the HTML in a browser.
+    /// Opens the generated HTML using the operating system's browser command.
     pub fn open_browser(&self, path: &Path) -> Result<(), String> {
         let full_path = path.canonicalize()
             .map_err(|e| format!("Error finding HTML file: {}", e))?;

@@ -1,3 +1,4 @@
+
 mod lexer;
 mod syntaxanalyzer;
 mod semantic;
@@ -12,6 +13,7 @@ use std::env;
 use std::fs;
 use std::process;
 
+// Runs the compiler steps in order. If any step fails, it prints the error and stops.
 fn main() {
     let args: Vec<String> = env::args().collect();
 

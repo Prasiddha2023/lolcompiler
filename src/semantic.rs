@@ -2,28 +2,30 @@
 use std::collections::HashMap;
 use crate::syntaxanalyzer::Node;
 
-/// Checks variables and scopes.
+/// Checks variable definitions, uses, and scopes.
 pub struct SemanticAnalyzer {
     scopes: Vec<HashMap<String, String>>,
 }
 
 impl SemanticAnalyzer {
+    /// Starts the analyzer with no variable scopes.
     pub fn new() -> Self {
         SemanticAnalyzer {
             scopes: Vec::new(),
         }
     }
 
-    // Starts a new scope.
+    // Adds a new scope for variables defined inside this section.
     fn enter_scope(&mut self) {
         self.scopes.push(HashMap::new());
     }
 
+    // Removes the current scope when leaving a section.
     fn leave_scope(&mut self) {
         self.scopes.pop();
     }
 
-    // Saves a variable in the current scope.
+    // Saves a variable, but rejects a duplicate name in the same scope.
     fn define_variable(&mut self, name: String, value: String) -> Result<(), String> {
         if let Some(scope) = self.scopes.last_mut() {
             if scope.contains_key(&name) {
@@ -40,7 +42,7 @@ impl SemanticAnalyzer {
         }
     }
 
-    // Looks for a variable.
+    // Searches from the newest scope outward so local variables take priority.
     fn lookup_variable(&self, name: &str) -> Option<String> {
         for scope in self.scopes.iter().rev() {
             if let Some(value) = scope.get(name) {
@@ -51,6 +53,7 @@ impl SemanticAnalyzer {
         None
     }
 
+    // Checks which syntax tree nodes create their own variable scope.
     fn is_scope(kind: &str) -> bool {
         matches!(
             kind,
@@ -58,6 +61,7 @@ impl SemanticAnalyzer {
         )
     }
 
+    // Finds the variable name stored in a node.
     fn get_variable_name(node: &Node) -> Result<String, String> {
         for child in &node.children {
             if child.kind == "variable_name" {
@@ -70,6 +74,7 @@ impl SemanticAnalyzer {
         Err("Semantic error: missing variable name".to_string())
     }
 
+    // Joins the text tokens that make up a variable's value.
     fn get_variable_value(node: &Node) -> Result<String, String> {
         let mut values = Vec::new();
 
@@ -88,6 +93,7 @@ impl SemanticAnalyzer {
         Ok(values.join(" "))
     }
 
+    // Opens and closes a scope around nodes that need one.
     fn resolve_node(&mut self, node: &mut Node) -> Result<(), String> {
         let new_scope = Self::is_scope(&node.kind);
 
@@ -104,7 +110,7 @@ impl SemanticAnalyzer {
         result
     }
 
-    // Checks variable definitions and uses.
+    // Checks definitions and replaces variable uses with their saved values.
     fn resolve_contents(&mut self, node: &mut Node) -> Result<(), String> {
         if node.kind == "variable_define" {
             let name = Self::get_variable_name(node)?;
@@ -139,7 +145,7 @@ impl SemanticAnalyzer {
         Ok(())
     }
 
-    /// Checks the syntax tree.
+    /// Clears old scopes and checks the whole syntax tree.
     pub fn analyze(&mut self, tree: &mut Node) -> Result<(), String> {
         self.scopes.clear();
         self.resolve_node(tree)

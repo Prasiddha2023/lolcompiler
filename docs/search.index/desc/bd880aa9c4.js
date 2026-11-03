@@ -1,1 +1,0 @@
-rd_("B`Creates a new semantic analyzer.0AoReturns the argument unchanged.00000000000000BaCalls <code>U::from(self)</code>.00000000000000BnPerforms semantic analysis on the syntax tree.0ClChecks variable definitions and resolves variables using \xe2\x80\xa6")

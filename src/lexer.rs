@@ -1,12 +1,15 @@
 
-/// Basic lexer functions.
+/// Methods used by the lexer to read characters and check commands.
 pub trait LexicalAnalyzer {
+    // Gets the next character and moves forward in the input.
     fn get_char(&mut self) -> char;
+    // Adds a character to the current token.
     fn add_char(&mut self, c: char);
+    // Checks whether an annotation is one of the supported LOLCODE commands.
     fn lookup(&self, s: &str) -> bool;
 }
 
-/// Reads the input and makes tokens.
+/// Reads LOLCODE input and turns it into tokens.
 pub struct Lexer {
     source: Vec<char>,
     pos: usize,
@@ -14,6 +17,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
+    /// Stores the input as characters so the lexer can read it one character at a time.
     pub fn new(source: &str) -> Self {
         Lexer {
             source: source.chars().collect(),
@@ -22,15 +26,17 @@ impl Lexer {
         }
     }
 
+    // Checks whether there are characters left to read.
     fn has_next(&self) -> bool {
         self.pos < self.source.len()
     }
 
+    // Looks at the next character without moving forward.
     fn peek_char(&self) -> Option<char> {
         self.source.get(self.pos).copied()
     }
 
-    // Reads one word.
+    // Reads text until whitespace or another annotation starts.
     fn read_word(&mut self) -> String {
         self.current.clear();
 
@@ -48,7 +54,7 @@ impl Lexer {
         word
     }
 
-    // Checks an annotation.
+    // Reads a command starting with #. Some commands need a second word.
     fn read_annotation(&mut self) -> Result<String, String> {
         self.current.clear();
         let first_char = self.get_char();
@@ -95,7 +101,7 @@ impl Lexer {
         }
     }
 
-    /// Splits the input into tokens.
+    /// Skips whitespace and separates the input into text and annotation tokens.
     pub fn tokenize(&mut self) -> Result<Vec<String>, String> {
         let mut tokens = Vec::new();
 
@@ -120,6 +126,7 @@ impl Lexer {
 }
 
 impl LexicalAnalyzer for Lexer {
+    // Gets the next character and moves forward in the input.
     fn get_char(&mut self) -> char {
         if self.has_next() {
             let c = self.source[self.pos];
@@ -130,10 +137,12 @@ impl LexicalAnalyzer for Lexer {
         }
     }
 
+    // Adds a character to the current token.
     fn add_char(&mut self, c: char) {
         self.current.push(c);
     }
 
+    // Checks whether an annotation is one of the supported LOLCODE commands.
     fn lookup(&self, s: &str) -> bool {
         matches!(
             s.to_uppercase().as_str(),

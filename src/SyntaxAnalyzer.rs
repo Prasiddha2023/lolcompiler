@@ -1,27 +1,44 @@
 
-/// Parser functions.
+/// Methods used to parse the different LOLCODE parts.
 pub trait SyntaxAnalyzer {
+    // Checks the full program, starting with #HAI and ending with #KBYE.
     fn parse_lolcode(&mut self) -> Result<(), String>;
+    // Parses the head section and its optional title.
     fn parse_head(&mut self) -> Result<(), String>;
+    // Parses the title text until #OIC.
     fn parse_title(&mut self) -> Result<(), String>;
+    // Reads comment tokens until #TLDR.
     fn parse_comment(&mut self) -> Result<(), String>;
+    // Keeps parsing body elements until #KBYE.
     fn parse_body(&mut self) -> Result<(), String>;
+    // Parses one paragraph until its closing #MKAY.
     fn parse_paragraph(&mut self) -> Result<(), String>;
+    // Allows text, variables, and other supported elements inside a paragraph.
     fn parse_inner_paragraph(&mut self) -> Result<(), String>;
+    // Reads plain text and variable uses until #OIC.
     fn parse_inner_text(&mut self) -> Result<(), String>;
+    // Reads a variable name and its value after #IHAZ and #ITIZ.
     fn parse_variable_define(&mut self) -> Result<(), String>;
+    // Reads the variable name requested by #GIMMEH VAR.
     fn parse_variable_use(&mut self) -> Result<(), String>;
+    // Parses the text inside a bold section.
     fn parse_bold(&mut self) -> Result<(), String>;
+    // Parses a list and its items until #MKAY.
     fn parse_list(&mut self) -> Result<(), String>;
+    // Requires at least one item and parses any following items.
     fn parse_list_items(&mut self) -> Result<(), String>;
+    // Parses the contents of one list item.
     fn parse_inner_list(&mut self) -> Result<(), String>;
+    // Reads the link address until #OIC.
     fn parse_link(&mut self) -> Result<(), String>;
+    // Parses a newline command.
     fn parse_newline(&mut self) -> Result<(), String>;
+    // Adds the next plain-text token to the tree.
     fn parse_text(&mut self) -> Result<(), String>;
 }
 
 #[derive(Clone)]
-/// One node in the syntax tree.
+/// Stores a syntax tree element and its child nodes.
 pub struct Node {
     pub kind: String,
     pub token: Option<String>,
@@ -29,6 +46,7 @@ pub struct Node {
 }
 
 impl Node {
+    /// Creates a syntax tree node with no children.
     pub fn new(kind: &str) -> Self {
         Node {
             kind: kind.to_string(),
@@ -37,6 +55,7 @@ impl Node {
         }
     }
 
+    /// Prints each tree node with indentation to show its level.
     pub fn print(&self, depth: usize) {
         let indent = "  ".repeat(depth);
 
@@ -51,7 +70,7 @@ impl Node {
     }
 }
 
-/// Builds a tree from tokens.
+/// Checks token order and builds the syntax tree.
 pub struct Parser {
     tokens: Vec<String>,
     pos: usize,
@@ -60,6 +79,7 @@ pub struct Parser {
 }
 
 impl Parser {
+    /// Creates a parser ready to read tokens.
     pub fn new(tokens: Vec<String>) -> Self {
         Parser {
             tokens,
@@ -69,12 +89,12 @@ impl Parser {
         }
     }
 
-    // Starts a node.
+    // Starts a node and keeps it on the stack while its contents are parsed.
     fn enter(&mut self, kind: &str) {
         self.stack.push(Node::new(kind));
     }
 
-    // Finishes a node.
+    // Finishes the current node and attaches it to its parent.
     fn leave(&mut self) {
         if let Some(node) = self.stack.pop() {
             if let Some(parent) = self.stack.last_mut() {
@@ -85,6 +105,7 @@ impl Parser {
         }
     }
 
+    // Adds a node that holds one token.
     fn leaf(&mut self, kind: &str, token: String) {
         let node = Node {
             kind: kind.to_string(),
@@ -97,6 +118,7 @@ impl Parser {
         }
     }
 
+    // Looks ahead at the next annotation. Two-word commands count as one tag.
     fn peek_tag(&self) -> Option<(String, usize)> {
         let token = self.tokens.get(self.pos)?;
 
@@ -118,6 +140,7 @@ impl Parser {
         Some((upper, 1))
     }
 
+    // Checks whether the next annotation matches the expected tag.
     fn at(&self, tag: &str) -> bool {
         match self.peek_tag() {
             Some((current, _)) => current == tag,
@@ -125,6 +148,7 @@ impl Parser {
         }
     }
 
+    // Checks whether the next token is normal text instead of an annotation.
     fn at_text(&self) -> bool {
         match self.tokens.get(self.pos) {
             Some(token) => !token.starts_with('#'),
@@ -132,6 +156,7 @@ impl Parser {
         }
     }
 
+    // Gets the current token for error messages.
     fn describe(&self) -> String {
         match self.tokens.get(self.pos) {
             Some(token) => token.clone(),
@@ -139,6 +164,7 @@ impl Parser {
         }
     }
 
+    // Builds an error message with the token position.
     fn error(&self, message: &str) -> String {
         format!(
             "Syntax error at token {}: {} (found {})",
@@ -148,7 +174,7 @@ impl Parser {
         )
     }
 
-    // Checks the next annotation.
+    // Consumes an expected annotation or reports a syntax error.
     fn expect(&mut self, tag: &str) -> Result<(), String> {
         if !self.at(tag) {
             return Err(self.error(&format!("expected {}", tag)));
@@ -162,6 +188,7 @@ impl Parser {
         Ok(())
     }
 
+    // Parses a variable definition if one appears here.
     fn parse_optional_variable(&mut self) -> Result<(), String> {
         if self.at("#IHAZ") {
             self.parse_variable_define()?;
@@ -170,6 +197,7 @@ impl Parser {
         Ok(())
     }
 
+    // Parses any comments that appear one after another.
     fn parse_comments(&mut self) -> Result<(), String> {
         while self.at("#OBTW") {
             self.parse_comment()?;
@@ -180,7 +208,7 @@ impl Parser {
 }
 
 impl SyntaxAnalyzer for Parser {
-    // Parses the full program.
+    // Checks the full program, starting with #HAI and ending with #KBYE.
     fn parse_lolcode(&mut self) -> Result<(), String> {
         self.enter("lolcode");
 
@@ -206,6 +234,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Parses the head section and its optional title.
     fn parse_head(&mut self) -> Result<(), String> {
         self.enter("head");
 
@@ -225,6 +254,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Parses the title text until #OIC.
     fn parse_title(&mut self) -> Result<(), String> {
         self.enter("title");
 
@@ -238,6 +268,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Reads comment tokens until #TLDR.
     fn parse_comment(&mut self) -> Result<(), String> {
         self.enter("comment");
 
@@ -260,6 +291,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Keeps parsing body elements until #KBYE.
     fn parse_body(&mut self) -> Result<(), String> {
         self.enter("body");
 
@@ -292,6 +324,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Parses one paragraph until its closing #MKAY.
     fn parse_paragraph(&mut self) -> Result<(), String> {
         self.enter("paragraph");
 
@@ -305,6 +338,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Allows text, variables, and other supported elements inside a paragraph.
     fn parse_inner_paragraph(&mut self) -> Result<(), String> {
         self.enter("inner_paragraph");
 
@@ -335,6 +369,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Reads plain text and variable uses until #OIC.
     fn parse_inner_text(&mut self) -> Result<(), String> {
         self.enter("inner_text");
 
@@ -353,7 +388,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
-    // Parses a variable definition.
+    // Reads a variable name and its value after #IHAZ and #ITIZ.
     fn parse_variable_define(&mut self) -> Result<(), String> {
         self.enter("variable_define");
 
@@ -384,6 +419,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Reads the variable name requested by #GIMMEH VAR.
     fn parse_variable_use(&mut self) -> Result<(), String> {
         self.enter("variable_use");
 
@@ -404,6 +440,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Parses the text inside a bold section.
     fn parse_bold(&mut self) -> Result<(), String> {
         self.enter("bold");
 
@@ -417,6 +454,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Parses a list and its items until #MKAY.
     fn parse_list(&mut self) -> Result<(), String> {
         self.enter("list");
 
@@ -432,7 +470,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
-    // Parses list items.
+    // Requires at least one item and parses any following items.
     fn parse_list_items(&mut self) -> Result<(), String> {
         self.enter("list_items");
 
@@ -449,6 +487,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Parses the contents of one list item.
     fn parse_inner_list(&mut self) -> Result<(), String> {
         self.enter("inner_list");
 
@@ -475,6 +514,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Reads the link address until #OIC.
     fn parse_link(&mut self) -> Result<(), String> {
         self.enter("link");
 
@@ -495,6 +535,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Parses a newline command.
     fn parse_newline(&mut self) -> Result<(), String> {
         self.enter("newline");
 
@@ -505,6 +546,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Adds the next plain-text token to the tree.
     fn parse_text(&mut self) -> Result<(), String> {
         if !self.at_text() {
             return Err(self.error("expected text"));
