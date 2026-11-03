@@ -1,3 +1,5 @@
+
+/// Parser functions.
 pub trait SyntaxAnalyzer {
     fn parse_lolcode(&mut self) -> Result<(), String>;
     fn parse_head(&mut self) -> Result<(), String>;
@@ -19,6 +21,7 @@ pub trait SyntaxAnalyzer {
 }
 
 #[derive(Clone)]
+/// One node in the syntax tree.
 pub struct Node {
     pub kind: String,
     pub token: Option<String>,
@@ -48,6 +51,7 @@ impl Node {
     }
 }
 
+/// Builds a tree from tokens.
 pub struct Parser {
     tokens: Vec<String>,
     pos: usize,
@@ -65,10 +69,12 @@ impl Parser {
         }
     }
 
+    // Starts a node.
     fn enter(&mut self, kind: &str) {
         self.stack.push(Node::new(kind));
     }
 
+    // Finishes a node.
     fn leave(&mut self) {
         if let Some(node) = self.stack.pop() {
             if let Some(parent) = self.stack.last_mut() {
@@ -142,6 +148,7 @@ impl Parser {
         )
     }
 
+    // Checks the next annotation.
     fn expect(&mut self, tag: &str) -> Result<(), String> {
         if !self.at(tag) {
             return Err(self.error(&format!("expected {}", tag)));
@@ -173,6 +180,7 @@ impl Parser {
 }
 
 impl SyntaxAnalyzer for Parser {
+    // Parses the full program.
     fn parse_lolcode(&mut self) -> Result<(), String> {
         self.enter("lolcode");
 
@@ -345,6 +353,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Parses a variable definition.
     fn parse_variable_define(&mut self) -> Result<(), String> {
         self.enter("variable_define");
 
@@ -423,6 +432,7 @@ impl SyntaxAnalyzer for Parser {
         Ok(())
     }
 
+    // Parses list items.
     fn parse_list_items(&mut self) -> Result<(), String> {
         self.enter("list_items");
 

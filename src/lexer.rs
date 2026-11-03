@@ -1,9 +1,12 @@
+
+/// Basic lexer functions.
 pub trait LexicalAnalyzer {
     fn get_char(&mut self) -> char;
     fn add_char(&mut self, c: char);
     fn lookup(&self, s: &str) -> bool;
 }
 
+/// Reads the input and makes tokens.
 pub struct Lexer {
     source: Vec<char>,
     pos: usize,
@@ -27,6 +30,7 @@ impl Lexer {
         self.source.get(self.pos).copied()
     }
 
+    // Reads one word.
     fn read_word(&mut self) -> String {
         self.current.clear();
 
@@ -44,6 +48,7 @@ impl Lexer {
         word
     }
 
+    // Checks an annotation.
     fn read_annotation(&mut self) -> Result<String, String> {
         self.current.clear();
         let first_char = self.get_char();
@@ -90,6 +95,7 @@ impl Lexer {
         }
     }
 
+    /// Splits the input into tokens.
     pub fn tokenize(&mut self) -> Result<Vec<String>, String> {
         let mut tokens = Vec::new();
 

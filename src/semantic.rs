@@ -1,6 +1,8 @@
+
 use std::collections::HashMap;
 use crate::syntaxanalyzer::Node;
 
+/// Checks variables and scopes.
 pub struct SemanticAnalyzer {
     scopes: Vec<HashMap<String, String>>,
 }
@@ -12,6 +14,7 @@ impl SemanticAnalyzer {
         }
     }
 
+    // Starts a new scope.
     fn enter_scope(&mut self) {
         self.scopes.push(HashMap::new());
     }
@@ -20,6 +23,7 @@ impl SemanticAnalyzer {
         self.scopes.pop();
     }
 
+    // Saves a variable in the current scope.
     fn define_variable(&mut self, name: String, value: String) -> Result<(), String> {
         if let Some(scope) = self.scopes.last_mut() {
             if scope.contains_key(&name) {
@@ -36,6 +40,7 @@ impl SemanticAnalyzer {
         }
     }
 
+    // Looks for a variable.
     fn lookup_variable(&self, name: &str) -> Option<String> {
         for scope in self.scopes.iter().rev() {
             if let Some(value) = scope.get(name) {
@@ -99,6 +104,7 @@ impl SemanticAnalyzer {
         result
     }
 
+    // Checks variable definitions and uses.
     fn resolve_contents(&mut self, node: &mut Node) -> Result<(), String> {
         if node.kind == "variable_define" {
             let name = Self::get_variable_name(node)?;
@@ -133,6 +139,7 @@ impl SemanticAnalyzer {
         Ok(())
     }
 
+    /// Checks the syntax tree.
     pub fn analyze(&mut self, tree: &mut Node) -> Result<(), String> {
         self.scopes.clear();
         self.resolve_node(tree)
