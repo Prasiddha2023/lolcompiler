@@ -1,63 +1,63 @@
-<program>::= HAI <program-start> KBYE
+grammar lolcode;
 
-<program-start>::= <variable-define> <program-rest> | <program-rest>
+program        : HAI programStart KBYE EOF;
+programStart   : variableDefine programRest | programRest;
+programRest    : comment programRest | head body | bodyItem body | ;
 
-<program-rest>::= <comment> <program-rest> | <head> <body>| <body-item> <body>| <empty>
+head           : MAEK_HEAD headStart MKAY;
+headStart      : variableDefine headRest | headRest;
+headRest       : comment headRest | title commentList | ;
 
-<head>::= MAEK_HEAD <head-start> MKAY
+title          : GIMMEH_TITLE titleStart OIC;
+titleStart     : variableDefine plainBody | plainBody;
 
-<head-start>::= <variable-define> <head-rest> | <head-rest>
+body           : comment body | bodyItem body | ;
+bodyItem       : paragraph | list | bold | link | varUse | NEWLINE | TEXT;
 
-<head-rest>::= <comment> <head-rest> | <title> <comment-list>| <empty>
+paragraph      : MAEK_PARAGRAF paragraphStart MKAY;
+paragraphStart : variableDefine paragraphBody | paragraphBody;
+paragraphBody  : comment paragraphBody | paragraphItem paragraphBody | ;
+paragraphItem  : list | bold | link | varUse | NEWLINE | TEXT;
 
-<title>::= GIMMEH_TITLE <title-start> OIC
+bold           : GIMMEH_BOLD boldStart OIC;
+boldStart      : variableDefine plainBody | plainBody;
+plainBody      : TEXT plainBody | varUse plainBody | ;
 
-<title-start>::= <variable-define> <plain-body> | <plain-body>
+list           : MAEK_LIST listStart MKAY;
+listStart      : variableDefine listRest | listRest;
+listRest       : comment listRest | item itemList;
+itemList       : item itemList | ;
 
-<body>::= <comment> <body> | <body-item> <body> | <empty>
+item           : GIMMEH_ITEM itemStart OIC commentList;
+itemStart      : variableDefine itemBody | itemBody;
+itemBody       : TEXT itemBody | varUse itemBody | bold itemBody | ;
 
-<body-item>::= <paragraph> | <list>| <bold>| <link> | <variable-use> | NEWLINE | TEXT
+link           : GIMMEH_LINX TEXT OIC;
+varUse         : GIMMEH_VAR TEXT OIC;
+variableDefine : IHAZ TEXT ITIZ textNonempty MKAY;
 
-<paragraph>::= MAEK_PARAGRAF <paragraph-start> MKAY
+commentList    : comment commentList | ;
+comment        : OBTW textList TLDR;
+textList       : TEXT textList | ;
+textNonempty   : TEXT textList;
 
-<paragraph-start>::= <variable-define> <paragraph-body> | <paragraph-body>
+HAI            : '#HAI' | '#hai';
+KBYE           : '#KBYE' | '#kbye';
+OBTW           : '#OBTW' | '#obtw';
+TLDR           : '#TLDR' | '#tldr';
+MKAY           : '#MKAY' | '#mkay';
+OIC            : '#OIC' | '#oic';
+NEWLINE        : '#NEWLINE' | '#newline';
+IHAZ           : '#IHAZ' | '#ihaz';
+ITIZ           : '#ITIZ' | '#itiz';
+MAEK_HEAD      : '#MAEK HEAD' | '#maek head';
+MAEK_PARAGRAF  : '#MAEK PARAGRAF' | '#maek paragraf';
+MAEK_LIST      : '#MAEK LIST' | '#maek list';
+GIMMEH_TITLE   : '#GIMMEH TITLE' | '#gimmeh title';
+GIMMEH_BOLD    : '#GIMMEH BOLD' | '#gimmeh bold';
+GIMMEH_ITEM    : '#GIMMEH ITEM' | '#gimmeh item';
+GIMMEH_LINX    : '#GIMMEH LINX' | '#gimmeh linx';
+GIMMEH_VAR     : '#GIMMEH VAR' | '#gimmeh var';
 
-<paragraph-body>::= <comment> <paragraph-body>| <paragraph-item> <paragraph-body> | <empty>
-
-<paragraph-item>::= <list> | <bold> | <link> | <variable-use> | NEWLINE| TEXT
-
-<bold>::= GIMMEH_BOLD <bold-start> OIC
-
-<bold-start>::= <variable-define> <plain-body> | <plain-body>
-
-<plain-body>::= TEXT <plain-body> | <variable-use> <plain-body>| <empty>
-
-<list>::= MAEK_LIST <list-start> MKAY
-
-<list-start>::= <variable-define> <list-rest> | <list-rest>
-
-<list-rest>::= <comment> <list-rest> | <item> <item-list>
-
-<item-list>::= <item> <item-list> | <empty>
-
-<item>::= GIMMEH_ITEM <item-start> OIC <comment-list>
-
-<item-start>::= <variable-define> <item-body> | <item-body>
-
-<item-body>::= TEXT <item-body> | <variable-use> <item-body> | <bold> <item-body> | <empty>
-
-<link>::= GIMMEH_LINX TEXT OIC
-
-<variable-use>::= GIMMEH_VAR TEXT OIC
-
-<variable-define>::= IHAZ TEXT ITIZ <text-nonempty> MKAY
-
-<comment-list>::= <comment> <comment-list> | <empty>
-
-<comment>::= OBTW <text-list> TLDR
-
-<text-list>::= TEXT <text-list> | <empty>
-
-<text-nonempty>::= TEXT <text-list>
-
-<empty>::=
+TEXT           : ('A'..'Z' | 'a'..'z' | '0'..'9' | ',' | '.' | '"' | ':' | '?' | '!' | '%' | '=' | '/')+;
+WS             : (' ' | '\t' | '\r' | '\n')+ { $channel = HIDDEN; };
